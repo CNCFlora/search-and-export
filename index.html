@@ -1,0 +1,114 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Search and export</title>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    <!-- <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css"> -->
+    <style type="text/css">
+    #fields {
+        height: 200px;
+    }
+    #query {
+        height: 350px;
+    }
+    .go {
+        text-align:right;
+    }
+    </style>
+</head>
+<body>
+    <div class="container">
+       <form class='form col-md-12' action="query.php">
+         <fieldset>
+            <legend>Search &amp; Export</legend>
+            <input name="esearch" id="esearch" value="" type="hidden" />
+
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="db">Database</label>
+                    <select id="db" name="db" class="form-control">
+                        <option>--</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="type">Type</label>
+                    <select id="type" name="type" class="form-control"></select>
+                </div>
+                <div class="form-group">
+                    <label for="fields">Fields</label>
+                    <select id="fields" name="fields[]" multiple="multiple" class='form-control'>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group col-md-6">
+                <label for="query">Query</label>
+                <textarea id="query" name="query" rows="10" class="form-control" cols="30">*</textarea>
+            </div>
+            <div class="form-group col-md-12 go">
+                <button class="btn btn-primary">Search</button>
+            </div>
+         </fieldset>
+       </form>
+    </div>
+    <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+    $(function(){
+       var recline = "http://cncflora.jbrj.gov.br/recline";
+       var esearch = "http://cncflora.jbrj.gov.br/es";
+
+       $("#esearch").val(esearch);
+
+       var mapping ;
+
+       $.getJSON(esearch+"/_mapping?callback=?",function(data){
+           mapping = data;
+           for(var db in data) {
+               $("#db").append("<option>"+db+"</option>");
+           }
+       });
+
+       $("#db").change(function(){
+           var html = "<option>--</option>";
+           for(var type in mapping[$(this).val()].mappings ) {
+               html += "<option>"+type+"</option>";
+           }
+           $("#type").html(html);
+       });
+
+       $("#type").change(function(){
+           var html = "";
+           var props = mapping[$("#db").val()].mappings[$(this).val()].properties;
+           for(var prop in props) {
+               html += "<option selected>"+prop+"</option>";
+               if(typeof props[prop].properties == 'object') {
+                   for(var p2 in props[prop].properties) {
+                       html += "<option selected>"+prop+"."+p2+"</option>";
+                   }
+               }
+           }
+           $("#fields").html(html);
+       });
+
+       $("form").submit(function() {
+           var url = location.href.replace("index.html","")+"query.php?";
+           $("input,select,textarea").each(function(i,e){
+               var el = $(e);
+               var val = el.val();
+               if(typeof val == 'string') {
+                    url += "&"+el.attr("name")+"="+encodeURIComponent(val);
+               } else {
+                   for(var i in val) {
+                        url += "&"+el.attr("name")+"="+encodeURIComponent(val[i]);
+                   }
+               }
+           });
+           var rurl = recline+"/index.html?from="+encodeURIComponent(url);
+           window.open(rurl);
+           return false;
+       });
+    });
+    </script>
+</body>
+</html>
