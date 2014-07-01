@@ -15,7 +15,7 @@ function flatten($array, $prefix = '') {
 }
 
 $url =  $_GET["esearch"]."/".$_GET["db"]."/".$_GET["type"]."/_search?"
-        ."q=".urlencode($_GET["query"])."&_source=".implode(",",$_GET["fields"])."&size=999";
+        ."q=".urlencode($_GET["query"])."&_source=".implode(",",$_GET["fields"])."&size=999999";
 $r = json_decode(file_get_contents($url))->hits->hits;
 $response=[];
 foreach($r as $row) {
